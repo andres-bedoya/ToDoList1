@@ -83,29 +83,44 @@ class ViewController: UIViewController, UITableViewDataSource {
     
     func saveName(name: String) {
         //1
-        let appDelegate =
-            UIApplication.shared.delegate  as! AppDelegate
+        let app = UIApplication.shared.delegate  as! AppDelegate
         
         //EEE Should I add here persistent container??
         // http://stackoverflow.com/questions/37956720/how-to-create-managedobjectcontext-using-swift-3-in-xcode-8
-        let managedContext = AppDelegate.ManagedObjectContext
+        
+        // FIX : Here you are trying to access the "managedObjectContext" attribute of the appDelegate.
+        // But if you look in your app delegate file their is nothing like this. But you had declaired a containeur.
+        // and this container has a ManagedObjectContext as attribute (called viewContext)
+        
+        let managedContext = app.persistentContainer.viewContext
+        
+       // let managedContext = AppDelegate.ManagedObjectContext
         
         //2
-        let entity =  NSEntityDescription.entityForName("Task",
-                                                        inManagedObjectContext:managedContext)
+        let entity =  NSEntityDescription.entity(forEntityName: "Task",
+                                                 in:managedContext)
         
-        let person = NSManagedObject(entity: entity!,
-                                     insertIntoManagedObjectContext: managedContext)
+        let t = NSManagedObject(entity: entity!,
+                                     insertInto: managedContext) as! Task
         
         //3
-        person.setValue(name, forKey: "name")
+        t.name = name
+        //person.setValue(name, forKey: "name")
         
         //4
         do {
             try managedContext.save()
             //5
             //EEE Don't get why this Error
-            taskList.append(Task)
+            
+            // When you write Task with a big T you refer to the Class
+            // So you try to add a class in in the task list.
+            // In fact what you are trying to do is to add an object of the class Task in taskList
+            // (what we call a Task instance)
+            
+            //taskList.append(Task)
+            taskList.append(t)
+            
         } catch let error as NSError  {
             print("Could not save \(error), \(error.userInfo)")
         }
